@@ -192,7 +192,9 @@ set_query_attr(char **attr, char **val)
 static void
 parse_query_string(struct req *req, const char *qs)
 {
+	char		*qsd, *qsp;
 	char		*key, *val;
+	size_t		 qsl;
 	size_t		 keysz, valsz;
 
 	req->isquery	= 1;
@@ -201,6 +203,32 @@ parse_query_string(struct req *req, const char *qs)
 	req->q.sec	= NULL;
 	req->q.query	= NULL;
 	req->q.equal	= 1;
+
+	qsd = NULL;
+	qsl = strlen(qs);
+	/* If the query string was lavishly encoded, decode it. */
+	if (strcspn(qs, "&") == qsl && strcspn(qs, "%") != qsl) {
+		qsp = qsd = mandoc_malloc(qsl + 1);
+		while (*qs != '\0') {
+			if ( ! strncmp(qs, "%26", 3)) {
+				*qsp++ = '&';
+				qs += 3;
+			} else if (! strncmp(qs, "%25", 3)) {
+				qs += 3;
+				while (! strncmp(qs, "25", 2))
+					qs += 2;
+				if (! strncmp(qs, "26", 2)) {
+					qs += 2;
+					*qsp++ = '&';
+				} else
+					*qsp++ = '%';
+			} else {
+				*qsp++ = *qs++;
+			}
+		}
+		*qsp = '\0';
+		qs = qsd;
+	}
 
 	key = val = NULL;
 	while (*qs != '\0') {
@@ -273,6 +301,8 @@ next:
 		if (*qs != '\0')
 			qs++;
 	}
+	free(qsd);
+	qsd = NULL;
 }
 
 /*
