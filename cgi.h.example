@@ -2,7 +2,7 @@
 
 #define	HTTP_HOST "mdocml.bsd.lv"
 #define	SCRIPT_NAME "cgi-bin/man.cgi"
-#define	MAN_DIR "/man"
+#define	MAN_DIR "./"
 #define	CSS_DIR ""
 #define	CUSTOMIZE_TITLE "Manual pages with mandoc"
 #define	COMPAT_OLDURI Yes
